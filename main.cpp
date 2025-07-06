@@ -9,6 +9,10 @@ static const uint16_t MDDP_PID = 0xf06a;
 // USB commands
 uint8_t GET_ALL[3] = {0xC0, 0xA5, 0xA3};
 uint8_t GET_VOLUME[3] = {0xC0, 0xA5, 0xA2};
+uint8_t SET_FILTER[3] = {0xC0, 0xA5, 0x01};
+uint8_t SET_GAIN[3] = {0xC0, 0xA5, 0x02};
+uint8_t SET_VOLUME[3] = {0xC0, 0xA5, 0x04};
+uint8_t SET_INDICATOR[3] = {0xC0, 0xA5, 0x06};
 
 // USB protocol constants for Dawn Pro
 static constexpr uint8_t REQUEST_TYPE_WRITE = 0x21;
@@ -74,6 +78,21 @@ std::vector<uint8_t> read(libusb_device_handle *dac, uint8_t *request) {
     return data;
 }
 
+void write(libusb_device_handle *dac, uint8_t *request) {
+    std::cout << unsigned(request[4]) << std::endl;
+    auto transfer = libusb_control_transfer(
+            dac,
+            LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_OTHER,
+            REQUEST_ID_WRITE,
+            REQUEST_VALUE,
+            REQUEST_INDEX,
+            &request[0],
+            4,
+            0);
+    if (transfer < 0) {
+        std::cerr << "Error submitting transfer: " << libusb_error_name(transfer) << std::endl;
+    }
+}
 
 int to_normal(uint8_t raw) {
     for (const auto &entry : volumeTable) {
@@ -90,16 +109,14 @@ int get_volume(libusb_device_handle *dac){
 }
 
 
-/* TODO: make write function
-int to_8(uint8_t normal) {
-    for (int i = 0; i < sizeof(volumeTable) / sizeof(volumeTable[0]); i++) {
-        if (normal == volumeTable[i][1]) {
-            return volumeTable[i][0];
+uint8_t to_uint8(uint8_t normal) {
+    for (const auto &entry : volumeTable) {
+        if (normal == entry[1]) {
+            return entry[0];
         }
     }
     return -1;
 }
-*/
 
 
 const char *get_indicator(libusb_device_handle *dac) {
@@ -122,6 +139,10 @@ const char *get_filter(libusb_device_handle *dac) {
     return filterTable[filter];
 }
 
+void set_volume(libusb_device_handle *dac, char *argv){
+uint8_t cmd[4] = {SET_VOLUME[0], SET_VOLUME[1], SET_VOLUME[2], to_uint8((uint8_t)std::atoi(argv))};
+write(dac, cmd);
+}
 
 int main(int argc, char *argv[]) {
     int status = libusb_init(NULL);
@@ -154,7 +175,12 @@ int main(int argc, char *argv[]) {
         } else {
             std::cerr << "Invalid command usage: get <status|volume|filter|gain|indicator>" << std::endl;
         }
+    } else if (strcmp(argv[1], "set") == 0){
+        if (strcmp(argv[2], "volume") == 0){
+            set_volume(dac,argv[3]);
+        } 
     } else {
+        std::cout << argv[1] << std::endl;
         std::cerr << "Invalid command usage: get <status|volume|filter|gain|indicator>" << std::endl;
     }
     libusb_close(dac);
