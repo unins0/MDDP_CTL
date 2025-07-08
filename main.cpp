@@ -79,7 +79,6 @@ std::vector<uint8_t> read(libusb_device_handle *dac, uint8_t *request) {
 }
 
 void write(libusb_device_handle *dac, uint8_t *request) {
-    std::cout << unsigned(request[4]) << std::endl;
     auto transfer = libusb_control_transfer(
             dac,
             LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_OTHER,
@@ -139,9 +138,28 @@ const char *get_filter(libusb_device_handle *dac) {
     return filterTable[filter];
 }
 
+
 void set_volume(libusb_device_handle *dac, char *argv){
-uint8_t cmd[4] = {SET_VOLUME[0], SET_VOLUME[1], SET_VOLUME[2], to_uint8((uint8_t)std::atoi(argv))};
-write(dac, cmd);
+    uint8_t cmd[4] = {SET_VOLUME[0], SET_VOLUME[1], SET_VOLUME[2], to_uint8((uint8_t)atoi(argv))};
+    write(dac, cmd);
+}
+
+
+void set_filter(libusb_device_handle *dac, char *argv){
+    uint8_t cmd[4] = {SET_FILTER[0], SET_FILTER[1], SET_FILTER[2], (uint8_t)std::atoi(argv)};
+    write(dac, cmd);
+}
+
+
+void set_gain(libusb_device_handle *dac, char *argv){
+    uint8_t cmd[4] = {SET_GAIN[0], SET_GAIN[1], SET_GAIN[2], (uint8_t)std::atoi(argv)};
+    write(dac, cmd);
+}
+
+
+void set_indicator(libusb_device_handle *dac, char *argv){
+    uint8_t cmd[4] = {SET_INDICATOR[0], SET_INDICATOR[1], SET_INDICATOR[2], (uint8_t)std::atoi(argv)};
+    write(dac, cmd);
 }
 
 int main(int argc, char *argv[]) {
@@ -178,7 +196,13 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[1], "set") == 0){
         if (strcmp(argv[2], "volume") == 0){
             set_volume(dac,argv[3]);
-        } 
+        } else if (strcmp(argv[2], "filter") == 0){
+            set_filter(dac,argv[3]);
+        } else if (strcmp(argv[2], "gain") == 0){
+            set_gain(dac, argv[3]);
+        } else if (strcmp(argv[2], "indicator") == 0){
+            set_indicator(dac, argv[3]);
+        }
     } else {
         std::cout << argv[1] << std::endl;
         std::cerr << "Invalid command usage: get <status|volume|filter|gain|indicator>" << std::endl;
