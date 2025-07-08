@@ -1,10 +1,11 @@
+#include <array>
+#include <cstdlib>
 #include <iostream>
 #include <libusb-1.0/libusb.h>
-#include <vector>
 #include <cstring>
 
-static const uint16_t MDDP_VID = 0x2fc6;
-static const uint16_t MDDP_PID = 0xf06a;
+static constexpr uint16_t MDDP_VID = 0x2fc6;
+static constexpr uint16_t MDDP_PID = 0xf06a;
 
 // USB commands
 uint8_t GET_ALL[3] = {0xC0, 0xA5, 0xA3};
@@ -47,8 +48,8 @@ static const char *filterTable[] = {
 };
 
 
-std::vector<uint8_t> read(libusb_device_handle *dac, uint8_t *request) {
-    std::vector<uint8_t> data(DATA_BUFFER_SIZE, 0);
+std::array<uint8_t, DATA_BUFFER_SIZE> read(libusb_device_handle *dac, uint8_t *request) {
+    std::array<uint8_t, DATA_BUFFER_SIZE> data = {0};
     auto transfer = libusb_control_transfer(
         dac,
         LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_OTHER,
@@ -78,7 +79,7 @@ std::vector<uint8_t> read(libusb_device_handle *dac, uint8_t *request) {
     return data;
 }
 
-void write(libusb_device_handle *dac, uint8_t *request) {
+int write(libusb_device_handle *dac, uint8_t *request) {
     auto transfer = libusb_control_transfer(
             dac,
             LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_OTHER,
@@ -90,7 +91,9 @@ void write(libusb_device_handle *dac, uint8_t *request) {
             0);
     if (transfer < 0) {
         std::cerr << "Error submitting transfer: " << libusb_error_name(transfer) << std::endl;
+        return -1;
     }
+    return 0;
 }
 
 int to_normal(uint8_t raw) {
@@ -176,7 +179,7 @@ int main(int argc, char *argv[]) {
     }
     if (strcmp(argv[1], "get") == 0){
         if (strcmp(argv[2], "status") == 0){
-            std::vector<uint8_t> data = read(dac, GET_ALL);
+            std::array<uint8_t, DATA_BUFFER_SIZE> data = read(dac, GET_ALL);
             std::cout << "Volume: " << get_volume(dac) << std::endl;
             std::cout << "Filter: " << filterTable[data[FILTER_IDX]] << std::endl;
             if (data[GAIN_IDX] == 0) { std::cout << "Gain: " << "Low" << std::endl; }
