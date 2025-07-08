@@ -143,30 +143,60 @@ const char *get_filter(libusb_device_handle *dac) {
 
 
 void set_volume(libusb_device_handle *dac, char *argv){
-    uint8_t cmd[4] = {SET_VOLUME[0], SET_VOLUME[1], SET_VOLUME[2], to_uint8((uint8_t)atoi(argv))};
-    write(dac, cmd);
+    int value = atoi(argv);
+    if ((value >= 0) && (value <= 60)){
+        uint8_t cmd[4] = {SET_VOLUME[0], SET_VOLUME[1], SET_VOLUME[2], to_uint8((uint8_t)atoi(argv))};
+        write(dac, cmd);
+    } else {
+        std::cout << "invalid value: set value in range (0 - 60)" << std::endl;
+    }
 }
 
 
 void set_filter(libusb_device_handle *dac, char *argv){
-    uint8_t cmd[4] = {SET_FILTER[0], SET_FILTER[1], SET_FILTER[2], (uint8_t)std::atoi(argv)};
-    write(dac, cmd);
+    int value = atoi(argv);
+    if ((value >= 0) && (value <= 4)){
+        uint8_t cmd[4] = {SET_FILTER[0], SET_FILTER[1], SET_FILTER[2], (uint8_t)std::atoi(argv)};
+        write(dac, cmd);
+    } else {
+        std::cout << "invalud value: set value in range (0 - 4):" << std::endl;
+        std::cout << "  0: Fast Roll Off Low Latency" << std::endl;
+        std::cout << "  1: Fast Roll Off Phase Compensated" << std::endl;
+        std::cout << "  2: Slow Roll Off Low Latency" << std::endl;
+        std::cout << "  3: Slow Roll Off Phase Compensated" << std::endl;
+        std::cout << "  4: Non Oversampling" << std::endl;
+    }
 }
 
 
 void set_gain(libusb_device_handle *dac, char *argv){
-    uint8_t cmd[4] = {SET_GAIN[0], SET_GAIN[1], SET_GAIN[2], (uint8_t)std::atoi(argv)};
-    write(dac, cmd);
+    int value = atoi(argv);
+    if ((value >= 0) && (value <= 1)){
+        uint8_t cmd[4] = {SET_GAIN[0], SET_GAIN[1], SET_GAIN[2], (uint8_t)std::atoi(argv)};
+        write(dac, cmd);
+    } else {
+    std::cout << "invalid value: set value in range (0 - 1):" << std::endl;
+    std::cout << "  0: Low" << std::endl;
+    std::cout << "  1: High" << std::endl;
+    }
 }
 
 
 void set_indicator(libusb_device_handle *dac, char *argv){
-    uint8_t cmd[4] = {SET_INDICATOR[0], SET_INDICATOR[1], SET_INDICATOR[2], (uint8_t)std::atoi(argv)};
-    write(dac, cmd);
+    int value = atoi(argv);
+    if ((value >= 0) && (value <= 3)){
+        uint8_t cmd[4] = {SET_INDICATOR[0], SET_INDICATOR[1], SET_INDICATOR[2], (uint8_t)std::atoi(argv)};
+        write(dac, cmd);
+    } else {
+    std::cout << "invalid value: set value in range (0 - 2):" << std::endl;
+    std::cout << "  0: on" << std::endl;
+    std::cout << "  1: Temp off" << std::endl;
+    std::cout << "  2: Off" << std::endl;
+    }
 }
 
 int main(int argc, char *argv[]) {
-    if ((argc >= 2) && (argc <= 3)) {
+    if ((argc > 2) && (argc <= 4)) {
         int status = libusb_init(NULL);
         if (status != 0) {
             std::cerr << "Error cold't intit libusb" << std::endl;
@@ -212,7 +242,7 @@ int main(int argc, char *argv[]) {
         } else {
             std::cerr << "Invalid command usage: " << argv[0] << " get|set|help" << std::endl;
             std::cout << "Commands:" << std::endl;
-            std::cout << "  get [status|volume|filter|gain|indicator]" << std::endl;
+            std::cout << "  get [all|volume|filter|gain|indicator]" << std::endl;
             std::cout << "  set [volume|filter|gain|indicator] [value]" << std::endl;
             std::cout << "  help - Show this help message." << std::endl << std::endl;
             std::cout << "Parameters and their values:" << std::endl;
@@ -237,7 +267,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command usage: " << argv[0] << " get|set|help" << std::endl;
         std::cout << "Commands:" << std::endl;
-        std::cout << "  get [status|volume|filter|gain|indicator]" << std::endl;
+        std::cout << "  get [all|volume|filter|gain|indicator]" << std::endl;
         std::cout << "  set [volume|filter|gain|indicator] [value]" << std::endl;
         std::cout << "  help - Show this help message." << std::endl << std::endl;
         std::cout << "Parameters and their values:" << std::endl;
