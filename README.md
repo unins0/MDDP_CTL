@@ -1,2 +1,2 @@
-# MDDP_CTL
+# mddctl
 Moondrop Dawn Pro CTL
