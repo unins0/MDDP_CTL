@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(mddctl)
+set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDART 20)
 set(CMAKE_CXX_STANDART_REQUIRED True)
 add_executable(mddctl main.cpp)
